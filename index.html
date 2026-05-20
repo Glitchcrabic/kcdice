@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>KCD — Кости</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:     #120d06;
+  --bg2:    #1e1508;
+  --card:   #2a1d0c;
+  --card2:  #342410;
+  --gold:   #c9953a;
+  --goldl:  #e8b86d;
+  --cream:  #f2e8d0;
+  --muted:  #8c7a5e;
+  --rust:   #b05b2a;
+  --red:    #c0392b;
+  --green:  #27ae60;
+  --border: rgba(201,149,58,0.2);
+}
+html, body {
+  height: 100%; background: var(--bg); color: var(--cream);
+  font-family: -apple-system,'Segoe UI',sans-serif; font-size: 15px; overflow: hidden;
+}
+.screen {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 1.5rem;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.screen.active { opacity: 1; pointer-events: all; }
+
+/* ── MENU ── */
+#screen-menu {
+  gap: 1.8rem;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201,149,58,0.08) 0%, transparent 60%), var(--bg);
+}
+.big-die { font-size: 3.5rem; animation: rot 8s linear infinite; }
+@keyframes rot {
+  0%{transform:rotate(0deg)}25%{transform:rotate(90deg) scale(1.06)}
+  50%{transform:rotate(180deg)}75%{transform:rotate(270deg) scale(1.06)}100%{transform:rotate(360deg)}
+}
+.logo-title { font-size: 1.8rem; font-weight: 700; color: var(--cream); text-align: center; line-height: 1; }
+.menu-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-align: center; }
+.length-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.6rem; width: 100%; max-width: 320px; }
+.len-btn {
+  background: var(--card); border: 1px solid var(--border); color: var(--muted);
+  font-size: 1rem; font-weight: 700; padding: 0.75rem 0.4rem 0.6rem;
+  cursor: pointer; text-align: center; border-radius: 4px; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.len-btn span { display: block; font-size: 0.6rem; font-weight: 400; color: var(--muted); margin-top: 0.2rem; }
+.len-btn.active { border-color: var(--gold); border-width: 2px; color: var(--gold); background: var(--card2); }
+.start-btn {
+  width: 100%; max-width: 320px; background: var(--gold); border: none; color: var(--bg);
+  font-size: 1rem; font-weight: 700; padding: 0.85rem; cursor: pointer; border-radius: 4px;
+  -webkit-tap-highlight-color: transparent; transition: background 0.15s, transform 0.1s;
+}
+.start-btn:active { transform: scale(0.97); background: var(--goldl); }
+
+/* ── GAME ── */
+#screen-game { justify-content: flex-start; padding: 0; overflow-y: auto; gap: 0; }
+
+/* Scoreboard */
+.score-bar {
+  width: 100%; background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0.6rem 1rem 0.5rem; display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; flex-shrink: 0;
+}
+.score-col { display: flex; flex-direction: column; gap: 2px; }
+.score-col.right { align-items: flex-end; }
+.score-name { font-size: 0.58rem; letter-spacing: 0.15em; color: var(--muted); }
+.score-total { font-size: 1.4rem; font-weight: 700; color: var(--cream); line-height: 1; }
+.score-total.winning { color: var(--gold); }
+.score-goal-mid { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--muted); text-align: center; }
+.score-goal-mid span { display: block; font-size: 0.9rem; color: var(--gold); font-weight: 700; }
+
+.progress-wrap { width: 100%; height: 3px; background: var(--card); position: relative; flex-shrink: 0; }
+.prog-p { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); transition: width 0.4s; }
+.prog-b { position: absolute; right: 0; top: 0; bottom: 0; background: var(--rust); transition: width 0.4s; }
+
+/* Turn banner */
+.turn-banner {
+  width: 100%; padding: 0.38rem 1rem; font-size: 0.68rem; letter-spacing: 0.15em;
+  text-align: center; background: var(--card); border-bottom: 1px solid var(--border);
+  color: var(--muted); flex-shrink: 0; transition: all 0.3s;
+}
+.turn-banner.yours { background: rgba(201,149,58,0.12); color: var(--gold); border-color: rgba(201,149,58,0.3); }
+.turn-banner.bots  { background: rgba(176,91,42,0.12);  color: var(--rust); border-color: rgba(176,91,42,0.3); }
+
+/* Points strip — три сущности */
+.pts-strip {
+  width: 100%; background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: grid; grid-template-columns: 1fr 1px 1fr;
+  flex-shrink: 0;
+}
+.pts-cell { padding: 0.45rem 0.6rem; text-align: center; }
+.pts-sep { background: var(--border); }
+.pts-label { font-size: 0.52rem; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 2px; }
+.pts-val { font-size: 1.05rem; font-weight: 700; color: var(--cream); line-height: 1; }
+.pts-val.active-pts { color: var(--goldl); }
+.pts-val.zero  { color: var(--muted); }
+.pts-val.bust  { color: var(--red); }
+.pts-val.hot   { color: var(--green); }
+
+/* Dice area */
+.dice-area {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 1rem 1rem 0.5rem; gap: 0.9rem; width: 100%;
+}
+.dice-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; min-height: 56px; }
+
+.die {
+  width: 52px; height: 52px; background: var(--card2); border: 2px solid var(--border);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent; user-select: none;
+}
+.die.selectable:active { transform: scale(0.93); }
+.die.kept    { border-color: var(--gold); background: rgba(201,149,58,0.15); }
+.die.used    { opacity: 0.22; cursor: default; pointer-events: none; }
+.die.bust    { border-color: var(--red); background: rgba(192,57,43,0.12); }
+.die.invalid { opacity: 0.6; border-color: var(--red); background: rgba(192,57,43,0.1); }
+
+.log { width: 100%; max-width: 340px; font-size: 0.82rem; color: var(--muted); text-align: center; min-height: 2.4rem; line-height: 1.4; }
+
+/* Action buttons */
+.action-row {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  width: 100%; max-width: 320px; flex-shrink: 0; padding: 0 1rem 1rem;
+}
+.btn-keep {
+  width: 100%; background: var(--card2); border: 1px solid var(--gold); color: var(--goldl);
+  font-size: 0.95rem; font-weight: 700; padding: 0.78rem; cursor: pointer;
+  border-radius: 4px; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.btn-keep:active { background: rgba(201,149,58,0.2); transform: scale(0.97); }
+.btn-keep:disabled { border-color: var(--card2); color: var(--muted); cursor: default; transform: none; background: var(--card); }
+
+.btn-bank {
+  width: 100%; background: var(--gold); border: none; color: var(--bg);
+  font-size: 0.95rem; font-weight: 700; padding: 0.78rem; cursor: pointer;
+  border-radius: 4px; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+}
+.btn-bank:active { background: var(--goldl); transform: scale(0.97); }
+.btn-bank:disabled { background: var(--card2); color: var(--muted); cursor: default; transform: none; }
+
+/* ── RESULT ── */
+#screen-result {
+  gap: 1.4rem;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201,149,58,0.1) 0%, transparent 60%), var(--bg);
+}
+.result-icon { font-size: 3.5rem; }
+.result-title { font-size: 1.7rem; font-weight: 700; color: var(--cream); text-align: center; }
+.result-title.win  { color: var(--gold); }
+.result-title.lose { color: var(--muted); }
+.result-scores { display: flex; gap: 2rem; align-items: center; }
+.r-score { text-align: center; }
+.r-name  { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--muted); }
+.r-val   { font-size: 1.9rem; font-weight: 700; color: var(--cream); }
+.r-val.hi { color: var(--gold); }
+.r-vs    { font-size: 1rem; color: var(--muted); }
+.play-again-btn {
+  width: 100%; max-width: 280px; background: var(--gold); border: none; color: var(--bg);
+  font-size: 1rem; font-weight: 700; padding: 0.9rem; cursor: pointer; border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+.play-again-btn:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+
+<!-- ══ MENU ══════════════════════════════════════════════ -->
+<div class="screen active" id="screen-menu">
+  <div class="big-die">🎲</div>
+  <div>
+    <div class="logo-title">KINGDOM COME: DICE</div>
+
+  </div>
+  <div class="menu-label">Выбери длину игры</div>
+  <div class="length-grid">
+    <button class="len-btn" onclick="selLen(2000,this)">2000<span>~5 мин</span></button>
+    <button class="len-btn active" onclick="selLen(4000,this)">4000<span>Стандарт</span></button>
+    <button class="len-btn" onclick="selLen(8000,this)">8000<span>~20 мин</span></button>
+  </div>
+  <button class="start-btn" onclick="startGame()">Начать игру</button>
+</div>
+
+<!-- ══ GAME ═══════════════════════════════════════════════ -->
+<div class="screen" id="screen-game">
+
+  <!-- Табло -->
+  <div class="score-bar">
+    <div class="score-col">
+      <div class="score-name">ТЫ</div>
+      <div class="score-total" id="sp">0</div>
+    </div>
+    <div><div class="score-goal-mid">Цель<span id="sg">4000</span></div></div>
+    <div class="score-col right">
+      <div class="score-name">БОТ</div>
+      <div class="score-total" id="sb">0</div>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="prog-p" id="pp" style="width:0%"></div>
+    <div class="prog-b" id="pb" style="width:0%"></div>
+  </div>
+
+  <!-- Чей ход -->
+  <div class="turn-banner yours" id="banner">⚔ ТВОЙ ХОД</div>
+
+  <!-- Три сущности очков -->
+  <div class="pts-strip">
+    <div class="pts-cell">
+      <div class="pts-label">ОЧКИ ХОДА</div>
+      <div class="pts-val zero" id="pts-roll">0</div>
+    </div>
+    <div class="pts-sep"></div>
+    <div class="pts-cell">
+      <div class="pts-label">ОЧКИ КОНА</div>
+      <div class="pts-val zero" id="pts-round">0</div>
+    </div>
+
+  </div>
+
+  <!-- Кости + лог -->
+  <div class="dice-area">
+    <div class="dice-row" id="dice-row"></div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- Кнопки действий -->
+  <div class="action-row">
+    <button class="btn-keep" id="btn-keep" onclick="playerKeep()" disabled>
+      Отложить кубики и бросить снова
+    </button>
+    <button class="btn-bank" id="btn-bank" onclick="playerBank()" disabled>
+      Зафиксировать и передать ход
+    </button>
+  </div>
+
+</div>
+
+<!-- ══ RESULT ══════════════════════════════════════════════ -->
+<div class="screen" id="screen-result">
+  <div class="result-icon" id="ri">🏆</div>
+  <div class="result-title" id="rt">Победа!</div>
+  <div class="result-scores">
+    <div class="r-score"><div class="r-name">ТЫ</div><div class="r-val" id="rpv">0</div></div>
+    <div class="r-vs">vs</div>
+    <div class="r-score"><div class="r-name">БОТ</div><div class="r-val" id="rbv">0</div></div>
+  </div>
+  <button class="play-again-btn" onclick="showMenu()">Сыграть ещё раз</button>
+</div>
+
+<script>
+// ── Telegram ──
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); tg.setBackgroundColor('#120d06'); tg.setHeaderColor('#1e1508'); }
+
+// ── Constants ──
+const FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const BOT_ROUND_THRESHOLD = 350; // бот фиксирует кон, если очки кона >= этого значения
+
+// ── State ──
+/*
+  Три сущности:
+  rollPts   — очки текущего хода (выбранные кубики этого броска, ещё не подтверждены)
+  roundPts  — очки кона (сумма уже подтверждённых бросков за этот ход)
+  pTotal / bTotal — итоговые очки игрока/бота
+
+  dice[i] = { val, state }
+  state: 'free' | 'kept' | 'used'
+    free  — только что выброшена, игрок может выбрать
+    kept  — игрок выбрал в текущем броске (подсвечена золотом)
+    used  — зафиксирована в предыдущих бросках этого хода (серая)
+*/
+let goal = 4000;
+let pTotal = 0, bTotal = 0;
+let roundPts = 0;   // очки кона
+let dice = [];
+let isPlayerTurn = true;
+let gameOver = false;
+let inputLocked = false; // блокировка во время анимации бота
+
+// ── Screens ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showMenu() { showScreen('screen-menu'); }
+
+// ── Menu ──
+function selLen(v, btn) {
+  goal = v;
+  document.querySelectorAll('.len-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function startGame() {
+  pTotal = 0; bTotal = 0; roundPts = 0;
+  isPlayerTurn = true; gameOver = false; inputLocked = false;
+  document.getElementById('sg').textContent = goal;
+  updateScores();
+  setBanner(true);
+  updatePtsStrip(0, 0);
+  setLog('');
+  showScreen('screen-game');
+  // Первый бросок — автоматический
+  setTimeout(() => doRoll(), 300);
+}
+
+// ── RNG ──
+function rng() {
+  const a = new Uint32Array(1);
+  crypto.getRandomValues(a);
+  return (a[0] % 6) + 1;
+}
+
+// ── Scoring engine ──
+
+// score(): используется для isBust и бота — молча игнорирует некомбинирующиеся кости
+function score(vals) {
+  if (!vals.length) return 0;
+  const c = [0,0,0,0,0,0,0];
+  vals.forEach(v => c[v]++);
+  if (vals.length === 6) {
+    const sv = [...vals].sort((a,b)=>a-b);
+    if (sv.join('') === '123456') return 1500;
+  }
+  if (vals.length === 5) {
+    const sv = [...vals].sort((a,b)=>a-b);
+    for (let s=1; s<=2; s++)
+      if (sv[0]===s&&sv[1]===s+1&&sv[2]===s+2&&sv[3]===s+3&&sv[4]===s+4) return 750;
+  }
+  if (vals.length === 4) {
+    const sv = [...vals].sort((a,b)=>a-b);
+    for (let s=1; s<=3; s++)
+      if (sv[0]===s&&sv[1]===s+1&&sv[2]===s+2&&sv[3]===s+3) return 500;
+  }
+  let s = 0;
+  for (let v=1; v<=6; v++) {
+    if (c[v] >= 3) { s += (v===1?1000:v*100) * Math.pow(2, c[v]-3); c[v]=0; }
+  }
+  s += c[1]*100 + c[5]*50;
+  return s;
+}
+
+// scoreExact(): возвращает очки только если ВСЕ переданные кости входят в комбинацию
+function scoreExact(vals) {
+  if (!vals.length) return 0;
+  const n = vals.length;
+  const c = [0,0,0,0,0,0,0];
+  vals.forEach(v => c[v]++);
+  if (n === 6) {
+    const sv = [...vals].sort((a,b)=>a-b);
+    if (sv.join('') === '123456') return 1500;
+  }
+  if (n === 5) {
+    const sv = [...vals].sort((a,b)=>a-b);
+    for (let s=1; s<=2; s++)
+      if (sv[0]===s&&sv[1]===s+1&&sv[2]===s+2&&sv[3]===s+3&&sv[4]===s+4) return 750;
+  }
+  if (n === 4) {
+    const sv = [...vals].sort((a,b)=>a-b);
+    for (let s=1; s<=3; s++)
+      if (sv[0]===s&&sv[1]===s+1&&sv[2]===s+2&&sv[3]===s+3) return 500;
+  }
+  const cc = [...c];
+  let pts = 0, used = 0;
+  for (let v=1; v<=6; v++) {
+    if (cc[v] >= 3) { pts += (v===1?1000:v*100) * Math.pow(2, cc[v]-3); used += cc[v]; cc[v]=0; }
+  }
+  used += cc[1]; pts += cc[1]*100; cc[1]=0;
+  used += cc[5]; pts += cc[5]*50;  cc[5]=0;
+  return used < n ? 0 : pts; // 0 если остались непокрытые кости
+}
+
+// fullCover(): разбивает vals на комбинации так чтобы ВСЕ кости были покрыты.
+// Возвращает суммарные очки или -1 если полное покрытие невозможно.
+function fullCover(vals) {
+  if (vals.length === 0) return 0;
+  const n = vals.length;
+  let best = -1;
+  for (let m = 1; m < (1 << n); m++) {
+    const sub = [];
+    for (let i = 0; i < n; i++) if (m & (1 << i)) sub.push(vals[i]);
+    const s = scoreExact(sub);
+    if (s === 0) continue;
+    const rest = vals.filter((_, i) => !(m & (1 << i)));
+    const restPts = fullCover(rest);
+    if (restPts >= 0) {
+      const total = s + restPts;
+      if (total > best) best = total;
+    }
+  }
+  return best;
+}
+
+// selectionScore(): очки выбора игрока (0 если есть лишние кости)
+function selectionScore(vals) {
+  const pts = fullCover(vals);
+  return pts >= 0 ? pts : 0;
+}
+
+function isBust(vals) {
+  return vals.length > 0 && score(vals) === 0;
+}
+
+// ── Render dice ──
+function renderDice() {
+  const row = document.getElementById('dice-row');
+  row.innerHTML = '';
+  dice.forEach((d, i) => {
+    const el = document.createElement('div');
+    el.className = 'die';
+    el.textContent = FACES[d.val - 1];
+    if (d.state === 'used') {
+      el.classList.add('used');
+    } else if (d.state === 'kept') {
+      el.classList.add('kept');
+      if (isPlayerTurn && !inputLocked) el.classList.add('selectable');
+    } else {
+      // free
+      if (isPlayerTurn && !inputLocked) el.classList.add('selectable');
+    }
+    if (isPlayerTurn && !inputLocked && d.state !== 'used') {
+      el.onclick = () => toggleDie(i);
+    }
+    row.appendChild(el);
+  });
+}
+
+function markBust() {
+  document.getElementById('dice-row').querySelectorAll('.die:not(.used)').forEach(el => {
+    el.classList.add('bust');
+    el.onclick = null;
+  });
+}
+
+function markHot() {
+  document.getElementById('dice-row').querySelectorAll('.die').forEach(el => {
+    el.classList.add('kept'); // green-ish highlight
+  });
+}
+
+// ── Toggle die selection ──
+function toggleDie(i) {
+  if (!isPlayerTurn || inputLocked || gameOver) return;
+  const d = dice[i];
+  if (d.state === 'used') return;
+  d.state = d.state === 'kept' ? 'free' : 'kept';
+  recalc();
+  renderDice();
+  // Log hint based on current selection validity
+  const kv = dice.filter(d => d.state === 'kept').map(d => d.val);
+  if (kv.length > 0 && selectionScore(kv) === 0) {
+    setLog('Лишний кубик — убери его или измени выбор');
+  } else {
+    setLog(kv.length > 0 ? '' : 'Выбери кубики для отклада');
+  }
+}
+
+function recalc() {
+  const kept = dice.filter(d => d.state === 'kept');
+  const kv   = kept.map(d => d.val);
+
+  if (kv.length === 0) {
+    updatePtsStrip(0, roundPts);
+    setButtons(false, false);
+    clearInvalid();
+    return;
+  }
+
+  const rp    = selectionScore(kv); // 0 если есть лишние кости
+  const valid = rp > 0;
+
+  updatePtsStrip(rp, roundPts);
+  setButtons(valid, valid);
+
+  const diceEls = document.getElementById('dice-row').querySelectorAll('.die');
+  diceEls.forEach((el, i) => {
+    el.classList.remove('invalid');
+    if (!valid && dice[i] && dice[i].state === 'kept') el.classList.add('invalid');
+  });
+}
+
+function clearInvalid() {
+  document.getElementById('dice-row').querySelectorAll('.die').forEach(el => el.classList.remove('invalid'));
+}
+
+function updatePtsStrip(rollPts, roundPts) {
+  const rEl = document.getElementById('pts-roll');
+  const rdEl = document.getElementById('pts-round');
+  rEl.textContent = rollPts || 0;
+  rEl.className = 'pts-val ' + (rollPts > 0 ? 'active-pts' : 'zero');
+
+  rdEl.textContent = roundPts || 0;
+  rdEl.className = 'pts-val ' + (roundPts > 0 ? '' : 'zero');
+}
+
+function setLog(msg) { document.getElementById('log').textContent = msg; }
+
+// ── Core: roll dice ──
+// Rolls all 'free' dice (or all 6 if fresh turn)
+function doRoll() {
+  // If no dice exist yet, create 6
+  if (dice.length === 0) {
+    dice = Array(6).fill(0).map(() => ({ val: rng(), state: 'free' }));
+  } else {
+    // Convert kept→used, roll free ones
+    dice.forEach(d => {
+      if (d.state === 'kept') d.state = 'used';
+    });
+    // Check hot dice: all used?
+    const freeCount = dice.filter(d => d.state === 'free').length;
+    if (freeCount === 0) {
+      // HOT DICE — reset all to free and re-roll
+      dice.forEach(d => { d.state = 'free'; d.val = rng(); });
+      renderDice();
+      updatePtsStrip(0, roundPts);
+      setLog('🔥 Горячие кости! Все 6 снова в игре');
+      setButtons(false, false);
+      setTimeout(() => afterRoll(), 400);
+      return;
+    }
+    dice.forEach(d => { if (d.state === 'free') d.val = rng(); });
+  }
+  afterRoll();
+}
+
+function afterRoll() {
+  const freeVals = dice.filter(d => d.state === 'free').map(d => d.val);
+  renderDice();
+
+  if (isBust(freeVals)) {
+    markBust();
+    updatePtsStrip(0, roundPts);
+    document.getElementById('pts-roll').textContent = '—';
+    document.getElementById('pts-roll').className = 'pts-val bust';
+    document.getElementById('pts-round').textContent = '0';
+    document.getElementById('pts-round').className = 'pts-val bust';
+    setLog('Нет комбинаций — очки кона сгорают!');
+    setButtons(false, false);
+    if (isPlayerTurn) {
+      inputLocked = true;
+      setTimeout(() => endTurn(false), 1600);
+    }
+    return;
+  }
+
+  if (isPlayerTurn) {
+    setLog('Выбери кубики: нажми чтобы отложить');
+    setButtons(false, false); // wait for selection
+    updatePtsStrip(0, roundPts);
+  }
+}
+
+// ── Player actions ──
+function playerKeep() {
+  if (inputLocked || gameOver) return;
+  const kv = dice.filter(d => d.state === 'kept').map(d => d.val);
+  const rp = selectionScore(kv);
+  if (rp === 0) return;
+  roundPts += rp;
+  updatePtsStrip(0, roundPts);
+  setLog('');
+  setButtons(false, false);
+  // Trigger re-roll (doRoll will convert kept→used)
+  setTimeout(() => doRoll(), 200);
+}
+
+function playerBank() {
+  if (inputLocked || gameOver) return;
+  const kv = dice.filter(d => d.state === 'kept').map(d => d.val);
+  const rp = selectionScore(kv);
+  if (rp === 0) return;
+  const total = roundPts + rp;
+  endTurn(true, total);
+}
+
+function setButtons(keepOn, bankOn) {
+  document.getElementById('btn-keep').disabled = !keepOn;
+  document.getElementById('btn-bank').disabled = !bankOn;
+}
+
+// ── End of a player's turn ──
+// scored=true means player banked; scored=false means bust
+function endTurn(banked, pts) {
+  if (isPlayerTurn) {
+    if (banked) {
+      pTotal += pts;
+      updateScores();
+      setLog(`+${pts} к счёту!`);
+      if (pTotal >= goal) { endGame(true); return; }
+    }
+    roundPts = 0; dice = [];
+    updatePtsStrip(0, 0);
+    isPlayerTurn = false;
+    setBanner(false);
+    inputLocked = true;
+    setButtons(false, false);
+    setTimeout(() => startBotTurn(), 900);
+  } else {
+    // bot bust — already handled in runBotTurn
+  }
+}
+
+// ── Bot turn ──
+function startBotTurn() {
+  roundPts = 0; dice = [];
+  runBotTurn(0, []);
+}
+
+function runBotTurn(botRoundPts, usedDice) {
+  // Roll free dice
+  const freeSlots = usedDice.length === 0 ? 6 :
+    6 - usedDice.filter(d => d.state === 'used').length;
+
+  let bd;
+  if (usedDice.length === 0) {
+    bd = Array(6).fill(0).map(() => ({ val: rng(), state: 'free' }));
+  } else {
+    bd = usedDice.map(d => ({ ...d }));
+    // Convert kept→used
+    bd.forEach(d => { if (d.state === 'kept') d.state = 'used'; });
+    // Hot dice check
+    const stillFree = bd.filter(d => d.state === 'free').length;
+    if (stillFree === 0) {
+      bd = Array(6).fill(0).map(() => ({ val: rng(), state: 'free' }));
+    } else {
+      bd.forEach(d => { if (d.state === 'free') d.val = rng(); });
+    }
+  }
+
+  // Show dice
+  dice = bd;
+  renderDice();
+  updatePtsStrip(0, botRoundPts);
+  setLog('Бот бросает...');
+
+  const freeVals = bd.filter(d => d.state === 'free').map(d => d.val);
+
+  setTimeout(() => {
+    if (isBust(freeVals)) {
+      markBust();
+      setLog('Бот потерял кон (bust)!');
+      setTimeout(() => finishBotTurn(0), 1400);
+      return;
+    }
+
+    // Greedy: keep best subset
+    const { pts, mask } = bestSubset(freeVals);
+    bd.filter(d => d.state === 'free').forEach((d, i) => {
+      if (mask & (1 << i)) d.state = 'kept';
+    });
+    dice = bd;
+    renderDice();
+    const newRound = botRoundPts + pts;
+    updatePtsStrip(pts, botRoundPts);
+    setLog(`Бот выбирает кубики (+${pts})`);
+
+    setTimeout(() => {
+      // Decide: bank or roll again?
+      const willWin = (bTotal + newRound) >= goal;
+      const freeLeft = bd.filter(d => d.state === 'free').length;
+      const allKept  = freeLeft === 0;
+
+      if (willWin || (newRound >= BOT_ROUND_THRESHOLD && !allKept) || (freeLeft <= 1 && !allKept)) {
+        // Bank
+        setLog(`Бот фиксирует кон: +${newRound}`);
+        setTimeout(() => finishBotTurn(newRound), 700);
+      } else {
+        // Keep and roll again
+        setLog(allKept ? '🔥 Горячие кости! Бот продолжает' : `Кон: ${newRound} — бот продолжает`);
+        setTimeout(() => runBotTurn(newRound, bd), 700);
+      }
+    }, 600);
+  }, 600);
+}
+
+function finishBotTurn(scored) {
+  bTotal += scored;
+  updateScores();
+  if (bTotal >= goal) { endGame(false); return; }
+  roundPts = 0; dice = []; inputLocked = false;
+  isPlayerTurn = true;
+  setBanner(true);
+  updatePtsStrip(0, 0);
+  setLog('');
+  setButtons(false, false);
+  setTimeout(() => doRoll(), 400);
+}
+
+function bestSubset(freeVals) {
+  const n = freeVals.length;
+  let best = 0, bestMask = 0;
+  for (let m = 1; m < (1 << n); m++) {
+    const sub = freeVals.filter((_, i) => m & (1 << i));
+    const s = score(sub);
+    if (s > best) { best = s; bestMask = m; }
+  }
+  return { pts: best, mask: bestMask };
+}
+
+// ── Helpers ──
+function updateScores() {
+  document.getElementById('sp').textContent = pTotal;
+  document.getElementById('sb').textContent = bTotal;
+  document.getElementById('pp').style.width = Math.min(100, Math.round(pTotal/goal*100)) + '%';
+  document.getElementById('pb').style.width = Math.min(100, Math.round(bTotal/goal*100)) + '%';
+  document.getElementById('sp').className = 'score-total' + (pTotal > bTotal ? ' winning' : '');
+  document.getElementById('sb').className = 'score-total' + (bTotal > pTotal ? ' winning' : '');
+}
+
+function setBanner(isPlayer) {
+  const b = document.getElementById('banner');
+  b.textContent = isPlayer ? '⚔ ТВОЙ ХОД' : '🤖 ХОД БОТА';
+  b.className = 'turn-banner ' + (isPlayer ? 'yours' : 'bots');
+}
+
+function endGame(playerWon) {
+  gameOver = true; updateScores();
+  document.getElementById('ri').textContent = playerWon ? '🏆' : '💀';
+  const rt = document.getElementById('rt');
+  rt.textContent = playerWon ? 'Победа!' : 'Поражение';
+  rt.className = 'result-title ' + (playerWon ? 'win' : 'lose');
+  document.getElementById('rpv').textContent = pTotal;
+  document.getElementById('rpv').className = 'r-val' + (playerWon ? ' hi' : '');
+  document.getElementById('rbv').textContent = bTotal;
+  document.getElementById('rbv').className = 'r-val' + (!playerWon ? ' hi' : '');
+  setTimeout(() => showScreen('screen-result'), 900);
+}
+</script>
+</body>
+</html>
