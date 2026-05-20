@@ -23,7 +23,7 @@
 }
 html, body {
   height: 100%; background: var(--bg); color: var(--cream);
-  font-family: -apple-system,'Segoe UI',sans-serif; font-size: 15px; overflow: hidden;
+  font-family: -apple-system,'Segoe UI',sans-serif; font-size: 17px; overflow: hidden;
 }
 .screen {
   position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -37,25 +37,25 @@ html, body {
   gap: 1.8rem;
   background: radial-gradient(ellipse at 50% 0%, rgba(201,149,58,0.08) 0%, transparent 60%), var(--bg);
 }
-.big-die { font-size: 3.5rem; animation: rot 8s linear infinite; }
+.big-die { font-size: 5rem; animation: rot 8s linear infinite; }
 @keyframes rot {
   0%{transform:rotate(0deg)}25%{transform:rotate(90deg) scale(1.06)}
   50%{transform:rotate(180deg)}75%{transform:rotate(270deg) scale(1.06)}100%{transform:rotate(360deg)}
 }
-.logo-title { font-size: 1.8rem; font-weight: 700; color: var(--cream); text-align: center; line-height: 1; }
-.menu-label { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); text-align: center; }
-.length-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.6rem; width: 100%; max-width: 320px; }
+.logo-title { font-size: 2.2rem; font-weight: 700; color: var(--cream); text-align: center; line-height: 1; }
+.menu-label { font-size: 0.85rem; letter-spacing: 0.2em; color: var(--muted); text-align: center; }
+.length-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.7rem; width: 100%; max-width: 380px; }
 .len-btn {
   background: var(--card); border: 1px solid var(--border); color: var(--muted);
-  font-size: 1rem; font-weight: 700; padding: 0.75rem 0.4rem 0.6rem;
+  font-size: 1.2rem; font-weight: 700; padding: 0.9rem 0.4rem 0.75rem;
   cursor: pointer; text-align: center; border-radius: 4px; transition: all 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
-.len-btn span { display: block; font-size: 0.6rem; font-weight: 400; color: var(--muted); margin-top: 0.2rem; }
+.len-btn span { display: block; font-size: 0.75rem; font-weight: 400; color: var(--muted); margin-top: 0.2rem; }
 .len-btn.active { border-color: var(--gold); border-width: 2px; color: var(--gold); background: var(--card2); }
 .start-btn {
-  width: 100%; max-width: 320px; background: var(--gold); border: none; color: var(--bg);
-  font-size: 1rem; font-weight: 700; padding: 0.85rem; cursor: pointer; border-radius: 4px;
+  width: 100%; max-width: 380px; background: var(--gold); border: none; color: var(--bg);
+  font-size: 1.15rem; font-weight: 700; padding: 1rem; cursor: pointer; border-radius: 4px;
   -webkit-tap-highlight-color: transparent; transition: background 0.15s, transform 0.1s;
 }
 .start-btn:active { transform: scale(0.97); background: var(--goldl); }
@@ -66,24 +66,24 @@ html, body {
 /* Scoreboard */
 .score-bar {
   width: 100%; background: var(--bg2); border-bottom: 1px solid var(--border);
-  padding: 0.6rem 1rem 0.5rem; display: grid; grid-template-columns: 1fr auto 1fr;
+  padding: 0.85rem 1.2rem 0.75rem; display: grid; grid-template-columns: 1fr auto 1fr;
   align-items: center; flex-shrink: 0;
 }
 .score-col { display: flex; flex-direction: column; gap: 2px; }
 .score-col.right { align-items: flex-end; }
-.score-name { font-size: 0.58rem; letter-spacing: 0.15em; color: var(--muted); }
-.score-total { font-size: 1.4rem; font-weight: 700; color: var(--cream); line-height: 1; }
+.score-name { font-size: 0.75rem; letter-spacing: 0.15em; color: var(--muted); }
+.score-total { font-size: 1.9rem; font-weight: 700; color: var(--cream); line-height: 1; }
 .score-total.winning { color: var(--gold); }
-.score-goal-mid { font-size: 0.6rem; letter-spacing: 0.15em; color: var(--muted); text-align: center; }
-.score-goal-mid span { display: block; font-size: 0.9rem; color: var(--gold); font-weight: 700; }
+.score-goal-mid { font-size: 0.75rem; letter-spacing: 0.15em; color: var(--muted); text-align: center; }
+.score-goal-mid span { display: block; font-size: 1.2rem; color: var(--gold); font-weight: 700; }
 
-.progress-wrap { width: 100%; height: 3px; background: var(--card); position: relative; flex-shrink: 0; }
+.progress-wrap { width: 100%; height: 4px; background: var(--card); position: relative; flex-shrink: 0; }
 .prog-p { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); transition: width 0.4s; }
 .prog-b { position: absolute; right: 0; top: 0; bottom: 0; background: var(--rust); transition: width 0.4s; }
 
 /* Turn banner */
 .turn-banner {
-  width: 100%; padding: 0.38rem 1rem; font-size: 0.68rem; letter-spacing: 0.15em;
+  width: 100%; padding: 0.6rem 1rem; font-size: 0.85rem; letter-spacing: 0.15em;
   text-align: center; background: var(--card); border-bottom: 1px solid var(--border);
   color: var(--muted); flex-shrink: 0; transition: all 0.3s;
 }
@@ -96,10 +96,10 @@ html, body {
   display: grid; grid-template-columns: 1fr 1px 1fr;
   flex-shrink: 0;
 }
-.pts-cell { padding: 0.45rem 0.6rem; text-align: center; }
+.pts-cell { padding: 0.65rem 0.8rem; text-align: center; }
 .pts-sep { background: var(--border); }
-.pts-label { font-size: 0.52rem; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 2px; }
-.pts-val { font-size: 1.05rem; font-weight: 700; color: var(--cream); line-height: 1; }
+.pts-label { font-size: 0.7rem; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 2px; }
+.pts-val { font-size: 1.4rem; font-weight: 700; color: var(--cream); line-height: 1; }
 .pts-val.active-pts { color: var(--goldl); }
 .pts-val.zero  { color: var(--muted); }
 .pts-val.bust  { color: var(--red); }
@@ -110,30 +110,31 @@ html, body {
   flex: 1; display: flex; flex-direction: column; align-items: center;
   padding: 1rem 1rem 0.5rem; gap: 0.9rem; width: 100%;
 }
-.dice-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; min-height: 56px; }
+.dice-row { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; min-height: 80px; }
 
 .die {
-  width: 52px; height: 52px; background: var(--card2); border: 2px solid var(--border);
-  border-radius: 8px; display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
-  -webkit-tap-highlight-color: transparent; user-select: none;
+  width: 76px; height: 76px; background: var(--card2); border: 2px solid var(--border);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s, transform 0.12s;
+  -webkit-tap-highlight-color: transparent; user-select: none; flex-shrink: 0;
 }
+.die svg { display: block; }
 .die.selectable:active { transform: scale(0.93); }
 .die.kept    { border-color: var(--gold); background: rgba(201,149,58,0.15); }
 .die.used    { opacity: 0.22; cursor: default; pointer-events: none; }
 .die.bust    { border-color: var(--red); background: rgba(192,57,43,0.12); }
 .die.invalid { opacity: 0.6; border-color: var(--red); background: rgba(192,57,43,0.1); }
 
-.log { width: 100%; max-width: 340px; font-size: 0.82rem; color: var(--muted); text-align: center; min-height: 2.4rem; line-height: 1.4; }
+.log { width: 100%; max-width: 400px; font-size: 1rem; color: var(--muted); text-align: center; min-height: 2.4rem; line-height: 1.4; }
 
 /* Action buttons */
 .action-row {
   display: flex; flex-direction: column; gap: 0.5rem;
-  width: 100%; max-width: 320px; flex-shrink: 0; padding: 0 1rem 1rem;
+  width: 100%; max-width: 400px; flex-shrink: 0; padding: 0 1.2rem 1.2rem;
 }
 .btn-keep {
   width: 100%; background: var(--card2); border: 1px solid var(--gold); color: var(--goldl);
-  font-size: 0.95rem; font-weight: 700; padding: 0.78rem; cursor: pointer;
+  font-size: 1.05rem; font-weight: 700; padding: 1rem; cursor: pointer;
   border-radius: 4px; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
 .btn-keep:active { background: rgba(201,149,58,0.2); transform: scale(0.97); }
@@ -141,7 +142,7 @@ html, body {
 
 .btn-bank {
   width: 100%; background: var(--gold); border: none; color: var(--bg);
-  font-size: 0.95rem; font-weight: 700; padding: 0.78rem; cursor: pointer;
+  font-size: 1.05rem; font-weight: 700; padding: 1rem; cursor: pointer;
   border-radius: 4px; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
 }
 .btn-bank:active { background: var(--goldl); transform: scale(0.97); }
@@ -152,19 +153,19 @@ html, body {
   gap: 1.4rem;
   background: radial-gradient(ellipse at 50% 0%, rgba(201,149,58,0.1) 0%, transparent 60%), var(--bg);
 }
-.result-icon { font-size: 3.5rem; }
-.result-title { font-size: 1.7rem; font-weight: 700; color: var(--cream); text-align: center; }
+.result-icon { font-size: 4.5rem; }
+.result-title { font-size: 2.2rem; font-weight: 700; color: var(--cream); text-align: center; }
 .result-title.win  { color: var(--gold); }
 .result-title.lose { color: var(--muted); }
 .result-scores { display: flex; gap: 2rem; align-items: center; }
 .r-score { text-align: center; }
-.r-name  { font-size: 0.6rem; letter-spacing: 0.2em; color: var(--muted); }
-.r-val   { font-size: 1.9rem; font-weight: 700; color: var(--cream); }
+.r-name  { font-size: 0.8rem; letter-spacing: 0.2em; color: var(--muted); }
+.r-val   { font-size: 2.4rem; font-weight: 700; color: var(--cream); }
 .r-val.hi { color: var(--gold); }
-.r-vs    { font-size: 1rem; color: var(--muted); }
+.r-vs    { font-size: 1.2rem; color: var(--muted); }
 .play-again-btn {
   width: 100%; max-width: 280px; background: var(--gold); border: none; color: var(--bg);
-  font-size: 1rem; font-weight: 700; padding: 0.9rem; cursor: pointer; border-radius: 4px;
+  font-size: 1.15rem; font-weight: 700; padding: 1rem; cursor: pointer; border-radius: 4px;
   -webkit-tap-highlight-color: transparent;
 }
 .play-again-btn:active { transform: scale(0.97); }
@@ -261,7 +262,24 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setBackgroundColor('#120d06'); tg.setHeaderColor('#1e1508'); }
 
 // ── Constants ──
-const FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+// SVG die faces — dot positions for values 1-6
+const DOT_POSITIONS = [
+  [],                                      // placeholder
+  [[50,50]],                               // 1
+  [[25,25],[75,75]],                       // 2
+  [[25,25],[50,50],[75,75]],               // 3
+  [[25,25],[75,25],[25,75],[75,75]],       // 4
+  [[25,25],[75,25],[50,50],[25,75],[75,75]], // 5
+  [[25,25],[75,25],[25,50],[75,50],[25,75],[75,75]], // 6
+];
+
+function makeDieSvg(val, color) {
+  const dots = DOT_POSITIONS[val];
+  const dotSvg = dots.map(([cx,cy]) =>
+    `<circle cx="${cx}" cy="${cy}" r="8" fill="${color}"/>`
+  ).join('');
+  return `<svg width="52" height="52" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">${dotSvg}</svg>`;
+}
 const BOT_ROUND_THRESHOLD = 350; // бот фиксирует кон, если очки кона >= этого значения
 
 // ── State ──
@@ -410,13 +428,19 @@ function isBust(vals) {
 }
 
 // ── Render dice ──
+function getDotColor(state) {
+  if (state === 'kept')  return '#e8b86d';
+  if (state === 'used')  return '#4a3520';
+  return '#c9953a';
+}
+
 function renderDice() {
   const row = document.getElementById('dice-row');
   row.innerHTML = '';
   dice.forEach((d, i) => {
     const el = document.createElement('div');
     el.className = 'die';
-    el.textContent = FACES[d.val - 1];
+    el.innerHTML = makeDieSvg(d.val, getDotColor(d.state));
     if (d.state === 'used') {
       el.classList.add('used');
     } else if (d.state === 'kept') {
@@ -434,9 +458,13 @@ function renderDice() {
 }
 
 function markBust() {
-  document.getElementById('dice-row').querySelectorAll('.die:not(.used)').forEach(el => {
-    el.classList.add('bust');
-    el.onclick = null;
+  const els = document.getElementById('dice-row').querySelectorAll('.die');
+  els.forEach((el, i) => {
+    if (dice[i] && dice[i].state !== 'used') {
+      el.classList.add('bust');
+      el.onclick = null;
+      el.innerHTML = makeDieSvg(dice[i].val, '#c0392b');
+    }
   });
 }
 
@@ -483,7 +511,12 @@ function recalc() {
   const diceEls = document.getElementById('dice-row').querySelectorAll('.die');
   diceEls.forEach((el, i) => {
     el.classList.remove('invalid');
-    if (!valid && dice[i] && dice[i].state === 'kept') el.classList.add('invalid');
+    if (!valid && dice[i] && dice[i].state === 'kept') {
+      el.classList.add('invalid');
+      el.innerHTML = makeDieSvg(dice[i].val, '#c0392b');
+    } else if (dice[i]) {
+      el.innerHTML = makeDieSvg(dice[i].val, getDotColor(dice[i].state));
+    }
   });
 }
 
